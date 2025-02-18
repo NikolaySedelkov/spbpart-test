@@ -4,15 +4,33 @@ from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import os
 import uuid
-from models.file import FileModel
+#from models.file import FileModel
 from config.db import ConfigDB
+from sqlalchemy.orm import DeclarativeBase
 
 app = Flask(__name__)
+#app.config.from_object(ConfigDB)
+
+class Base(DeclarativeBase):
+  pass
+
+db = SQLAlchemy(app, model_class=Base)
+
+class FileModel(db.Model):
+    __tablename__ = 'files'
+
+    uid = db.Column(type_=db.String(36), unique=True, nullable=False, primary_key=True)
+    original_name = db.Column(type_=db.String(255), nullable=False)
+    extension = db.Column(type_=db.String(10), nullable=False)
+    size = db.Column(type_=db.Integer, nullable=False)
+    format = db.Column(type_=db.String(50), nullable=False)
+
+    def __repr__(self):
+        return f'<FileModel {self.original_name}>'
+
 
 print(ConfigDB.SQLALCHEMY_DATABASE_URI)
 
-app.config.from_object(ConfigDB)
-db = SQLAlchemy(app)
 CORS(app)
 
 @app.route('/')
@@ -73,5 +91,4 @@ if __name__ == '__main__':
 
     with app.app_context():
         db.create_all()
-        pass
     app.run(debug=True)
